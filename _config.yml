@@ -2,7 +2,7 @@
 title: ratsgo's blog
 tagline: 'for textmining'
 description: 'blog for textmining'
-url: http://ratsgo.github.io
+url: http://wonstat.github.io
 logo: '/public/logo.png'
 encoding: utf-8
 
@@ -27,12 +27,12 @@ author:
   description: <strong>보물찾기</strong> 그리운 마을, 그 먼 바다에 이르기까지
   gravatar: 0a638fc7996869b1b67fb90ccf77dcfe # md5 hash of your email address
   contact:
-    linkedin:  https://www.linkedin.com/in/gichanglee/
-    github:    https://github.com/ratsgo
-    facebook:  https://www.facebook.com/gichanglee.84
+#     linkedin:  https://www.linkedin.com/in/gichanglee/
+    github:    https://github.com/wonstat
+#     facebook:  https://www.facebook.com/gichanglee.84
     #twitter:  <hide>
     #weibo:    <hide>
-    email:     mailto:gichang_lee@korea.ac.kr
+    email:     mailto:wonseoklee@snu.ac.kr
 
 # Navigation (2nd level links supported)
 nav:
@@ -50,11 +50,11 @@ tag_page: '/blog/tags/'
 category_page: '/blog/categories/'
 
 hero:
-  image: https://ratsgo.github.io/public/img/picture.JPG
+  image: https://wonstat.github.io/public/img/picture.JPG
   caption: Original Artwork &copy; Pablo Picasso. Girl before a Mirror. Boisgeloup, March 1932. Oil on canvas
 
 # Puglins
 mathjax: true # whether support mathjax
 google_analytics_token: 'UA-93172815-1' # leave blank if you don't want google analytics
-disqus_short_name: 'ratsgo-github-io' # leave blank if you don't want disqus
+disqus_short_name: 'wonstat-github-io' # leave blank if you don't want disqus
 
