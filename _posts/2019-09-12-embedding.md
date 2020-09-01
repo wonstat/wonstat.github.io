@@ -1,85 +1,391 @@
 ---
-title: 한국어 임베딩
-category: Natural Language Processing
-tag: embedding
+title: Convex Optimization
+category: Convex Optimization
 ---
 
-**임베딩(embedding)**은 자연어를 숫자의 나열인 벡터로 바꾼 결과 혹은 그 일련의 과정 전체를 가리키는 용어입니다. 단어나 문장 각각을 벡터로 변환해 벡터 공간에 '끼워 넣는다(embed)'는 취지에서 임베딩이라는 이름이 붙었습니다. 컴퓨터가 자연어를 처리할 수 있게 하려면 자연어를 계산 가능한 형식인 임베딩으로 바꿔줘야 합니다. 
-
-임베딩은 컴퓨터가 자연어를 이해하도록 하는 첫 관문으로 매우 중요한 기능을 합니다. 자연어 처리 모델의 성능은 임베딩이 좌우한다고 해도 과언이 아닌데요. 제가 이번에 많은 시간과 노력을 들여서 [한국어 임베딩](http://www.yes24.com/Product/Goods/78569687)이라는 책을 펴냈습니다. 이 책에서는 다양한 임베딩 기법을 일별하고 한국어 데이터 전처리, 임베딩 구축에 이르는 전 과정을 튜토리얼 방식으로 소개합니다. 
-
-다음 그림을 클릭하면 도서 안내 페이지로 이동합니다.
-
-<a href="http://www.yes24.com/Product/Goods/78569687"><img src="https://i.imgur.com/j03ENCc.jpg" width="500px" title="embeddings" /></a>
+## Acceleration
 
 
 
+Q. Is the Gradient Descent Algorithm: $x_{t+1} = x_{t} − \eta\nabla f(x_t)$  the best algorithm to use in practice?
 
-
-## 임베딩이 중요한 이유
-
-임베딩에는 말뭉치(corpus)의 의미, 문법 정보가 응축돼 있습니다. 임베딩은 벡터이기 때문에 사칙연산이 가능하며, 단어/문서 관련도(relevance) 역시 계산할 수 있습니다. 
-
-최근 들어 임베딩이 중요해진 이유는 따로 있습니다. 바로 전이 학습(transfer learning) 때문입니다. 전이 학습이란 특정 문제를 풀기 위해 학습한 모델을 다른 문제를 푸는 데 재사용하는 기법을 의미합니다. 예컨대 대규모 말뭉치를 미리 학습(pretrain)한 임베딩을 문서 분류 모델의 입력값으로 쓰고, 해당 임베딩을 포함한 모델 전체를 문서 분류 과제를 잘할 수 있도록 업데이트(fine-tuning)하는 방식이 바로 그것입니다. 물론 전이 학습은 문서 분류 이외의 다양한 다른 과제에도 적용할 수 있습니다. 
-
-전이 학습 혹은 프리트레인-파인 튜닝 메커니즘은 사람의 학습과 비슷한 점이 있습니다. 사람은 무언가를 배울 때 제로 베이스에서 시작하지 않습니다. 사람이 새로운 사실을 빠르게 이해할 수 있는 이유는 그가 이해를 하는 데에 평생 쌓아 온 지식을 동원하기 때문입니다. 자연어 처리 모델 역시 제로에서 시작하지 않습니다. 우선 대규모 말뭉치를 학습시켜 임베딩을 미리 만들어 놓습니다**(프리트레인)**. 이 임베딩에는 의미, 문법 정보가 녹아 있습니다. 이후 임베딩을 포함한 모델 전체를 문서 분류 과제에 맞게 업데이트합니다**(파인 튜닝)**. 이로써 전이 학습 모델은 제로부터 학습한 모델보다 문서 분류 과제를 빠르게 잘 수행할 수 있습니다. 
-
-다음은 [네이버 영화 리뷰 말뭉치(NSMC)](https://github.com/e9t/nsmc)를 가지고 영화 리뷰 문서의 극성(polarity)을 예측하는 모델의 정확도(accuracy)와 학습 손실(training loss)를 그래프로 나타낸 것입니다. `FastText`는 이 모델의 입력값을 단어 임베딩 기법의 일종인 FastText를 사용한 것이고, `Random`은 랜덤 임베딩을 썼다는 뜻입니다. 후자는 다시 말해 학습을 제로에서부터 시작했다는 뜻입니다. 그래프를 보면 아시겠지만 임베딩 품질이 좋으면 수행하려는 태스크(극성 분류)의 성능이 올라갑니다. 아울러 모델의 수렴(converge) 역시 빨라집니다.
+A. NO
 
 
 
-<a href="https://imgur.com/u8yHOqM"><img src="https://i.imgur.com/u8yHOqM.png" title="source: imgur.com" width="500px" /></a>
-
-<a href="https://imgur.com/5R661Va"><img src="https://i.imgur.com/5R661Va.png" width="500px" title="source: imgur.com" /></a>
+We use Accelerated Gradient Descent algorithm.
 
 
 
-품질 좋은 임베딩은 잘 담근 김치와 같습니다. 김치 맛이 좋으면 물만 부어 끓인 김치찌개 맛도 좋습니다. 임베딩 품질이 좋으면 단순한 모델로도 원하는 성능을 낼 수 있습니다. 모델 구조가 동일하다면 그 성능은 높고 수렴(converge)은 빠릅니다. 자연어 처리 모델을 만들고 서비스할 때 중요한 구성 요소 하나만 꼽으라고 한다면, 저는 주저하지 않고 ‘임베딩’을 꼽을 것입니다. ELMo(Embeddings from Language Models), BERT(Bidirectional Encoder Representations from Transformer), GPT(Generative Pre-Training) 등 자연어 처리 분야에서 당대 최고 성능을 내는 기법들이 모두 전이 학습 혹은 프리트레인-파인 튜닝 메커니즘을 사용하는 것은 우연의 일치가 아닙니다.
+Think about what we can do to outrun the update $x_{t+1} = x_{t} − \eta\nabla f(x_t)\ \text{with}\ \eta \leq \frac{1}{L}$ on L-smooth function?
 
 
 
-
-
-## 이 책이 다루는 범위
-
-[한국어 임베딩](http://www.yes24.com/Product/Goods/78569687)에서는 NPLM(Neural Probabilistic Language Model), Word2Vec, FastText, 잠재 의미 분석(LSA), GloVe, Swivel 등 6가지 단어 수준 임베딩 기법, LSA, Doc2Vec, 잠재 디리클레 할당(LDA), ELMo, BERT 등 5가지 문장 수준 임베딩 기법을 소개합니다. 이외에도 다양한 임베딩 기법이 있지만 두 가지 원칙에 입각해 일부만 골랐습니다. 우선 성능이 안정적이고 뛰어나 현업에 바로 적용해봄직한 기법을 선택했습니다. 또 임베딩 기법의 발전 양상을 이해하는 데 중요한 역할을 하는 모델을 포함했습니다. ‘정보의 홍수’ 속에서 살아가는 독자들에게 핵심에 해당하는 지식만을 전해주고 싶었기 때문입니다. 기타 임베딩 기법들은 대부분, 이 책에서 소개하는 11개 모델의 변형에 해당하기 때문에 독자 여러분이 추가로 공부하고 싶은 최신 기법이 있다면 이 책에서 가지를 쳐 나가는 식으로 학습하면 수월할 거라 생각합니다. 
-
-이와 관련해 XLNet이라는 기법을 짚고 넘어가야겠습니다. XLNet은 구글 연구팀이 2019년 상반기 발표한 모델로, 공개 당시 20개 자연어 처리 데이터셋에서 최고 성능을 기록해 주목받았습니다. 출간을 한 달 정도 늦춰 가며 목차와 내용을 전반적으로 손질할 수밖에 없었습니다. 그러나 직접 실험한 결과 XLNet의 파인 튜닝 성능(분류)이 BERT보다 뒤지는 것은 물론, 동일한 하이퍼파라미터(hyperparameter)로도 점수가 들쭉날쭉한 양상을 보였습니다. XLNet 저자 공식 리포지터리(https://github.com/zihangdai/xlnet)에도 비슷한 사례가 꾸준히 보고되고 있으나 출간 직전인 2019년 9월 현재까지 납득할 만한 해결책이 제시되지 않고 있습니다. 이에 아쉽기는 하지만 XLNet 관련 장을 1판에서는 제외하고 2판 이후를 기약하기로 했습니다. 그럼에도 XLNet을 공부하고 싶은 독자가 있다면 다음 링크를 확인하시면 됩니다.
+Naive Answer:  use the same update with a larger learning rate $\eta \gg\frac{1}{L} $ 
 
 
 
-- [XLNet](https://ratsgo.github.io/natural language processing/2019/09/11/xlnet/)
+Let's think about $f(x) =x^2$. Then $x_t = (-1)^t$ which never converges. (Let's call this situation as *bumping back and forth.*) 
 
 
 
-
-
-## 튜토리얼
-
-[한국어 임베딩](http://www.yes24.com/Product/Goods/78569687)은 각 임베딩 기법의 이론적 배경을 설명함과 동시에 공개돼 있는 한국어 말뭉치로 실습하는 것을 목표로 합니다. 이 책의 모든 실습 코드는 다음 깃허브 리포지터리에 공개돼 있습니다. 코드는 예고 없이 수정될 수 있으니 다음 리포지터리의 최신 코드를 받아 실행하기를 권합니다.
+It is natural to think about **how we adjust the learning rate automatically according to the shape of the function?**
 
 
 
-● https://github.com/ratsgo/embedding
+Always using large learning rate is the answer. $\rightarrow$ use the weighted sum of the gradients from the previous iterations to update the current point.
 
 
 
-책에 소개된 코드(특히 bash 스크립트)를 그대로 실행하고 싶은데 일일이 타이핑하기엔 너무 길어 불편할 수 있습니다. 복사해서 붙여 넣기 쉽도록 다음 페이지에 기법별로 스크립트를 정리해 놓았습니다. 
+$\Rightarrow$ **Nesterov's Accelerated Gradient Descent Update** 
+
+>Nesterov's Accelerated Gradient Descent.
+>
+>For a L-smooth function:
+>
+>- Gradient Descent step: $z_{t+1} = x_{t} − \eta\nabla f(x_t)$
+>
+>- Momentum step: $x_{t+1} = (1 − \gamma_t)z_{t+1} + \gamma_tz_t$
+>
+>- $\lambda_0=0,\ \lambda_t=\frac{1+\sqrt{1+4\lambda_{t-1}^2}}{2},\ \text{and}\ \gamma_t=\frac{1-\lambda_{t1}}{\lambda_{t+1}}$
+>
+>  (for large $t$, $\lambda_{t+1}\approx \lambda_{t}+\frac{1}{2}\, \lambda_{t} \approx \frac{t}{2}, \text{and}\ \gamma_t\approx-1$)
 
 
 
-● https://ratsgo.github.io/embedding
+Let's see this algorithm in detail.
 
 
 
+With $\gamma_t\approx-1\ \text{and}\ \Vert x_{t+1}-x_t\Vert_2=O(\eta)$,
 
 
-## 도서 구매 안내
+$$
+\begin{align*}
+x_{t+1} &\approx (1 − \gamma_t)(x_{t} − \eta\nabla f(x_t)) + \gamma_t(x_{t-1} − \eta\nabla f(x_{t-1})) 
+\\
+\\
+&\approx x_{t} − \eta\nabla f(x_t) + (x_{t}- x_{t-1} − \eta\nabla f(x_t)  + \eta\nabla f(x_{t-1}))
+\\
+\\
+&\approx x_{t} − \eta\nabla f(x_t) + (x_{t}- x_{t-1}) + O(\eta^2)
+\end{align*}
+$$
 
-전국 주요 서점과 온라인으로 구매할 수 있습니다. 온라인 서점 링크는 다음과 같습니다.
+
+Therefore, 
+
+
+$$
+\begin{align*}
+&x_{t+1}-x_{t-1}\approx  (x_{t}- x_{t-1})− \eta\nabla f(x_t)
+\\
+\\
+&(\text{Sum up the above from $1$ to $t$})
+\\
+\\
+&\Rightarrow x_{t}-x_{t}\approx x_{1}- x_{0}− \eta\sum_{s\leq t}\nabla f(x_s)
+\end{align*}
+$$
+
+
+Therefore, Accelerated Gradient Descent is approximately taking a step using the sum of past gradients.
 
 
 
-- [YES24](http://www.yes24.com/Product/Goods/78569687)
-- [교보문고](http://www.kyobobook.co.kr/product/detailViewKor.laf?ejkGb=KOR&mallGb=KOR&barcode=9791161753508)
-- [알라딘](https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=206404643)
+Momentum: "Weighted" sum of the past gradients. $\rightarrow$ it makes Gradient Descent more stable.
+
+
+
+Gradient is small: We can now use a larger learning rate $\eta \gg\frac{1}{L} $ without bumping back and forth.
+
+
+
+But the function is L-smooth, how do we reason about the update with $\eta \gg\frac{1}{L} $?
+
+
+
+For simplicity, assuming $f (x^{\ast}) = 0$
+
+
+
+1. For a fixed value $K>0$, if $\Vert \nabla f(x_t) \Vert_2^2 \geq K$ holds for every $t$, for $\eta \leq \frac{1}{L} $, (Gradient Descent Lemma):
+
+
+$$
+\begin{align*}
+&f(x_{i+1}) \leq f(x_i)-\frac{\eta}{2}\Vert\nabla f(x_i) \Vert_2^2
+\\
+\\
+&(\text{Sum up the above from $0$ to $T-1$ and using $\eta =\frac{1}{L}$})
+\\
+\\
+&f(x_{T}) \leq f(x_0)-\frac{KT}{2L}
+\end{align*}
+$$
+
+
+Then, need at most $\frac{Lf(x_0)}{K}$ iterations to find a point $x_T$ with $f(x_{T}) \leq\frac{f(x_0)}{2}$
+
+
+
+>Check
+>
+>$T=\frac{Lf(x_0)}{K} \rightarrow f(x_0)-\frac{KT}{2L}=\frac{f(x_0)}{2}\geq f(x_{T})$   
+
+
+
+2. For a fixed value $K>0$, if $\Vert \nabla f(x_t) \Vert_2^2 < K$ holds for every $t$, for every $\eta$, (Mirror Descent Lemma):
+
+
+$$
+\begin{align*}
+&\frac{1}{T}\sum_{t=0}^{T-1}f(x_t) \leq f(x^{\ast}) +\frac{1}{2\eta T}\Vert x_0-x^{\ast}\Vert_2^2+ \frac{\eta}{2T}\sum_{t=0}^{T-1}\Vert \nabla f(x_t)\Vert_2^2
+\\
+\\
+\Rightarrow & \frac{1}{T}\sum_{t=0}^{T-1}f(x_t) \leq \frac{1}{2\eta T}\Vert x_0-x^{\ast}\Vert_2^2+ \frac{\eta K}{2}
+\end{align*}
+$$
+
+
+With $\eta =\frac{f(x_0)}{2K}$, need at most $\frac{4K\Vert x_0-x^{\ast}\Vert_2^2}{f(x_0)^2}$ iterations to find a point $x_T$ with $f(x_{T}) \leq\frac{f(x_0)}{2}$
+
+
+
+>Check
+>
+> we have $f(x_T) \leq f(x_t)$ for every $t\leq T$
+>$$
+>\begin{align*}
+>f(x_T) &\leq \frac{1}{T}\sum_{t=0}^{T-1}f(x_t)
+>\\
+>\\
+>&\leq \frac{2K}{2f(x_0)}\frac{f(x_0)^2}{4K\Vert x_0-x^{\ast}\Vert_2^2}\Vert x_0-x^{\ast}\Vert_2^2 +\frac{f(x_0)K}{4K} 
+>\\
+>\\
+>&= \frac{f(x_0)}{4} +\frac{f(x_0)}{4}
+>\\
+>\\
+>&=\frac{f(x_0)}{2} 
+>\end{align*}
+>$$
+
+
+
+3. (In both cases,) with $K=\sqrt{\frac{Lf^3(x0)}{4\Vert x_0-x^{\ast}\Vert_2^2}}$, need at most $\frac{2\Vert x_0-x^{\ast}\Vert_2\sqrt{L}}{\sqrt{f(x_0)}}$ iterations to find a point $x_T$ with $f(x_{T}) \leq\frac{f(x_0)}{2}$
+
+   
+
+   > Check
+   >
+   > 
+   >
+   > 1. 
+   >    $$
+   >    \frac{Lf(x_0)}{K} = Lf(x_0)\sqrt{\frac{4\Vert x_0-x^{\ast}\Vert_2^2}{Lf^3(x_0)}}=\frac{2\Vert x_0-x^{\ast}\Vert_2\sqrt{L}}{\sqrt{f(x_0)}}
+   >    $$
+   >    
+   >
+   > 2. $$
+   >    \begin{align*}
+   >    \frac{4K\Vert x_0-x^{\ast}\Vert_2^2}{f(x_0)^2} &= \sqrt{\frac{Lf^3(x0)}{4\Vert x_0-x^{\ast}\Vert_2^2}} \frac{4\Vert x_0-x^{\ast}\Vert_2^2}{f(x_0)^2}
+   >    \\
+   >    \\
+   >    &= \frac{2\Vert x_0-x^{\ast}\Vert_2\sqrt{L}}{\sqrt{f(x_0)}}
+   >    \end{align*}
+   >    $$
+
+
+   
+   In the second case, when $f (x_0)\approx\Vert x_0 − x^{\ast}\Vert_2\approx 1$, the learning rate is much larger: $\eta =\frac{f(x_0)}{2k} \approx \frac{1}{\sqrt{L}} \gg \frac{1}{L}$
+
+
+
+> Think about a case for $f (x_0)=\Vert x_0 − x^{\ast}\Vert_2= 1$
+>
+>
+> 
+> need at most $\frac{2\sqrt{L}}{\sqrt{1}}$ iterations to find a point $x_T$ with $f(x_{T}) \leq\frac{1}{2}$
+> 
+> 
+>
+> need at most $\frac{2\sqrt{L}}{\sqrt{1/2}}$ iterations to find a point $x_T$ with $f(x_{T}) \leq\frac{1}{4}$
+> 
+> 
+>
+> $\cdots$
+>
+>
+> 
+> for $\varepsilon >0$, need at most $\frac{2\sqrt{L}}{\sqrt{\varepsilon}}$ iterations to find a point $x_T$ with $f(x_{T_{\varepsilon}}) \leq\varepsilon$
+
+
+
+It might neither be the case of $\Vert \nabla f(x_t) \Vert_2^2 \geq K$ holds for every $t$ nor $\Vert \nabla f(x_t) \Vert_2^2 < K$ holds for every $t$.
+
+
+
+Every iteration, we do both a step with $\eta =\frac{1}{L} $ (Gradient Descent) and a step with a larger $\eta \gg\frac{1}{L} $ (using Momentum to stablize). 
+
+
+
+In the end combine them:
+
+
+
+From now on prove Accelerated Gradient Descent algorithm. It will be quite long and tough.
+
+
+
+If your teacher does not require the proof, you can pass it :)
+
+
+
+#### Proof
+
+
+
+> **Linear Coupling**
+>
+> At every iteration, for a  fixed $\tau$: 
+>
+> - Update (small learning rate):   $s_{t+1} = x_{t} − \frac{1}{L}\nabla f(x_t)$
+> - Update (large learning rate $\eta \gg\frac{1}{L} $):  $I_{t+1} = I_{t} − \eta\nabla f(x_t)$
+> - Linear coupling: for a $\tau \in [0,1]$, $x_{t+1} = (1 − \tau)s_{t+1} + \tau l_{t+1}$
+>
+> $\Rightarrow I_{t+1}=I_0-\eta\sum_{r=0}^{t-1}\nabla f(x_r)$  is the momentum term. The final update combines (small learning rate) gradient descent with this (large learning rate) momentum.
+
+
+
+We can see that 
+
+
+$$
+\langle \nabla f(x_t), x^{\ast}-I_t\rangle =\frac{1}{\eta}\langle I_{t}-I_{t+1}, x^{\ast}-I_t\rangle
+$$
+
+
+>  Recall
+> $$
+> \frac{1}{\eta}\langle I_{t}-I_{t+1}, x^{\ast}-I_t\rangle =-\frac{1}{2\eta}[\Vert x^{\ast}-I_t\Vert_2^2-\Vert x^{\ast}-I_{t+1}\Vert_2^2 + \Vert I_t-I_{t+1}\Vert_2^2]
+> $$
+
+
+
+Now we have 
+
+
+$$
+\langle \nabla f(x_t), x^{\ast}-I_t\rangle = -\frac{1}{2\eta}[\Vert x^{\ast}-I_t\Vert_2^2-\Vert x^{\ast}-I_{t+1}\Vert_2^2 + \Vert I_t-I_{t+1}\Vert_2^2]
+$$
+
+
+
+1. lower linear bound
+
+
+$$
+\langle \nabla f(x_t), s_t -x_t\rangle \leq f(s_t) - f(x_t)
+\\
+\\
+\Leftrightarrow f(x_t) - f(s_t) \leq \langle \nabla f(x_t), x_t-s_t\rangle
+$$
+
+
+2. By definition of Linear coupling: for a $\tau \in [0,1]$, $x_{t+1} = (1 − \tau)s_{t+1} + \tau l_{t+1}$
+
+
+$$
+I_t-x^{\ast}+\frac{1-\tau}{\tau}(s_t-x_t)=x_t-x^{\ast}
+$$
+
+
+3.  Gradient Descent Lemma:
+
+   
+   $$
+   f(s_{t+1}) \leq f(x_r)-\frac{1}{2L}\Vert\nabla f(x_r) \Vert_2^2
+   $$
+   
+
+
+
+Therefore, combining 1,2,3,
+
+
+$$
+\begin{align*}
+f(x_t) - f(x^{\ast}) &\leq \langle \nabla f(x_t), x_t -x^{\ast}\rangle 
+\\
+\\
+&= \langle \nabla f(x_t), I_t-x^{\ast}\rangle + \frac{1-\tau}{\tau}\langle \nabla f(x_t), s_t -x_t\rangle
+\\
+\\
+&\leq \frac{1}{2\eta}[\Vert x^{\ast}-I_t\Vert_2^2-\Vert x^{\ast}-I_{t+1}\Vert_2^2 + \Vert I_t-I_{t+1}\Vert_2^2] + \frac{1-\tau}{\tau}\langle \nabla f(x_t), s_t -x_t\rangle
+\\
+\\
+&=\frac{1}{2\eta}[\Vert x^{\ast}-I_t\Vert_2^2-\Vert x^{\ast}-I_{t+1}\Vert_2^2 + \eta^2\Vert \nabla f(x_t)\Vert_2^2] + \frac{1-\tau}{\tau}\langle \nabla f(x_t), s_t -x_t\rangle
+\\
+\\
+&\leq \frac{1}{2\eta}[\Vert x^{\ast}-I_t\Vert_2^2-\Vert x^{\ast}-I_{t+1}\Vert_2^2 + 2L\eta^2(f(x_t)-f(s_{t+1}))] + \frac{1-\tau}{\tau}\langle \nabla f(x_t), s_t -x_t\rangle
+\\
+\\
+&\leq \frac{1}{2\eta}[\Vert x^{\ast}-I_t\Vert_2^2-\Vert x^{\ast}-I_{t+1}\Vert_2^2 + 2L\eta^2(f(x_t)-f(s_{t+1}))] + \frac{1-\tau}{\tau}(f(s_t)-f(x_{t}))
+\\
+\\
+&\text{pick $\tau$ s.t $L\eta = \frac{1-\tau}{\tau}$}
+\\
+\\
+&\leq \frac{1}{2\eta}[\Vert x^{\ast}-I_t\Vert_2^2-\Vert x^{\ast}-I_{t+1}\Vert_2^2 + 2L\eta^2(f(s_t)-f(s_{t+1}))]
+\end{align*}
+$$
+
+
+Sum from $t=0$ to $T-1$,assuming $f(x^{\ast})=0$, then,
+
+
+$$
+\frac{1}{T}\sum_{t=0}^{T-1}f(x_t) \leq \frac{1}{2T\eta}[\Vert x^{\ast}-I_0\Vert_2^2+ 2L\eta^2f(s_0)]
+$$
+
+
+Picking $\eta =\frac{\Vert x^{\ast}-I_0\Vert_2}{2\sqrt{f(s_0)}}$, we can find a point $x_T$ with $f(x_{T}) \leq\frac{f(x_0)}{2}$ in 
+
+
+$$
+T_{AGD} = \frac{2\sqrt{2L}\Vert x^{\ast}-I_0\Vert_2}{\sqrt{f(s_0)}}
+$$
+
+
+> Check
+>
+> Before the start we know $2xy\leq x^2+y^2$.
+>
+> $$
+> \begin{align*}
+> \frac{1}{2T\eta}[\Vert x^{\ast}-I_0\Vert_2^2+ 2L\eta^2f(s_0)] &= \frac{1}{2T\eta}[\Vert x^{\ast}-I_0\Vert_2^2 + 2L\frac{\Vert x^{\ast}-I_0\Vert_2^2}{4f(s_0)}f(s_0)]
+> \\
+> \\
+> &= \frac{1}{2T\eta}\Vert x^{\ast}-I_0\Vert_2^2(1 + \frac{L}{2})
+> \\
+> \\
+> &=\frac{1}{2}\frac{\sqrt{f(s_0)}}{2\sqrt{2L}\Vert x^{\ast}-I_0\Vert_2}\frac{2\sqrt{f(s_0)}}{\Vert x^{\ast}-I_0\Vert_2}\Vert x^{\ast}-I_0\Vert_2^2(1 + \frac{L}{2})
+> \\
+> \\
+> &=\frac{1}{2}\frac{f(s_0)}{\sqrt{2L}}(1 + \frac{L}{2})
+> \\
+> \\
+> &(\text{by the cauchy schwartz inequality,}\ \sqrt{2L} \leq 1 + \frac{L}{2})
+> \\
+> \\
+> &=\frac{f(s_0)}{2}
+> \end{align*}
+> $$
+
+
+
+The really important fact of momentumn
+
+ $\rightarrow$ want to use larger learning rate to do gradient descent, beyond the smoothness of the function.
+
+ $\rightarrow$ want to do it stably: Use momentum: \weighted" sum of the past gradients.
